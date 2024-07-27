@@ -1,0 +1,12 @@
+{
+  "iteration_count": 114514,
+  "targets": [
+    {
+      "secret_name": "TEST_SECRET",
+      "files": [
+        "test/resources/really.json",
+        "test/resources/task.yml"
+      ]
+    }
+  ]
+}
