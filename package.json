@@ -1,5 +1,5 @@
 {
-  "name": "trick",
+  "name": "@typinghare/trick",
   "description": "Save credential files to remote safely.",
   "version": "1.0.0",
   "main": "dist/index.js",
@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "publish": "rm -rf dist && tsc && pnpm publish"
+    "publish": "rm -rf dist && tsc && pnpm publish --access public"
   },
   "author": {
     "name": "James Chen",
