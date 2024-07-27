@@ -1,5 +1,6 @@
 {
   "name": "trick",
+  "description": "Save credential files to remote safely.",
   "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,7 +13,6 @@
     "email": "jameschan312.cn@gmail.com"
   },
   "license": "MIT",
-  "description": "",
   "dependencies": {
     "chalk": "^5.3.0",
     "commander": "^12.1.0",
