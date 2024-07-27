@@ -54,6 +54,7 @@ Temporary Items
 
 # NodeJS
 node_modules
+/dist
 
 # JetBrains
 /.idea
