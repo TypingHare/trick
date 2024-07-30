@@ -20,7 +20,7 @@ import chalk from 'chalk'
 
 const program = new Command()
 
-program.version('Trick v1.0.0 \nby James Chen (jameschan312.cn@gmail.com)')
+program.version('Trick v1.0.3 \nby James Chen (jameschan312.cn@gmail.com)')
 program.description('Save credential files to remote safely.')
 
 program
@@ -124,7 +124,7 @@ program
         await updateConfig((config) => {
             config.default_secret_name = secretName
 
-            return false
+            return true
         })
     })
 
@@ -134,6 +134,22 @@ program
     .action(async (): Promise<void> => {
         await updateConfig((config) => {
             console.log(config.default_secret_name)
+            return false
+        })
+    })
+
+program
+    .command('list')
+    .description('Display a list of targets.')
+    .action(async (): Promise<void> => {
+        await updateConfig((config) => {
+            for (const target of config.targets) {
+                console.log(chalk.cyan(target.secret_name))
+                for (const file of target.files) {
+                    console.log('    ' + chalk.yellow(file))
+                }
+            }
+
             return false
         })
     })
