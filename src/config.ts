@@ -4,6 +4,7 @@ export const CONFIG_FILE_NAME: string = 'trick.config.json'
 
 export interface Config {
     iteration_count: number
+    default_secret_name?: string
     targets: Target[]
 }
 
@@ -17,9 +18,11 @@ const defaultConfig: Config = {
     targets: [],
 }
 
-export class WriteConfigError extends Error {}
+export class WriteConfigError extends Error {
+}
 
-export class ReadConfigError extends Error {}
+export class ReadConfigError extends Error {
+}
 
 export async function writeConfig(config: Config): Promise<void> {
     try {

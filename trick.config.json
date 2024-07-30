@@ -2,11 +2,12 @@
   "iteration_count": 114514,
   "targets": [
     {
-      "secret_name": "TEST_SECRET",
+      "secret_name": "ROBLOX_PROJECT_TRICK_SECRET",
       "files": [
         "test/resources/really.json",
         "test/resources/task.yml"
       ]
     }
-  ]
+  ],
+  "default_secret_name": "ROBLOX_PROJECT_TRICK_SECRET"
 }

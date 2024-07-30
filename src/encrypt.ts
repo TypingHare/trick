@@ -1,15 +1,15 @@
-import { execa } from 'execa'
+import {execa} from 'execa'
 import * as path from 'node:path'
 import fsExtra from 'fs-extra'
 
 export class FailToEncryptFileError extends Error {
-    public constructor(public readonly srcFilePath: string) {
+    public constructor(public readonly srcFilePath: string, public readonly opensslErrMessage?: string) {
         super(`Fail to encrypt source file: ${srcFilePath}`)
     }
 }
 
 export class FailToDecryptFileError extends Error {
-    public constructor(public readonly destFilePath: string) {
+    public constructor(public readonly destFilePath: string, public readonly opensslErrMessage?: string) {
         super(`Fail to decrypt destination file: ${destFilePath}`)
     }
 }
@@ -43,9 +43,13 @@ export async function encryptFile(
     await fsExtra.ensureDir(path.dirname(destFilePath))
 
     try {
-        await execa(`${command}`, { shell: true })
+        await execa(`${command}`, {shell: true})
     } catch (err) {
-        throw new FailToEncryptFileError(srcFilePath)
+        if (typeof err == 'object' && err && Object.hasOwn(err, 'stderr')) {
+            throw new FailToEncryptFileError(srcFilePath, (err as { stderr: string }).stderr)
+        } else {
+            throw new FailToDecryptFileError(srcFilePath, "Unknown error when encrypting the file.")
+        }
     }
 }
 
@@ -79,9 +83,13 @@ export async function decryptFile(
     await fsExtra.ensureDir(path.dirname(srcFilePath))
 
     try {
-        await execa(`${command}`, { shell: true })
+        await execa(`${command}`, {shell: true})
     } catch (err) {
-        throw new FailToDecryptFileError(destFilePath)
+        if (typeof err == 'object' && err && Object.hasOwn(err, 'stderr')) {
+            throw new FailToDecryptFileError(srcFilePath, (err as { stderr: string })['stderr'])
+        } else {
+            throw new FailToDecryptFileError(srcFilePath, "Unknown error when decrypting the file.")
+        }
     }
 }
 
