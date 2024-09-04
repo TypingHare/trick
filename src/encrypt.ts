@@ -1,15 +1,21 @@
-import {execa} from 'execa'
+import { execa } from 'execa'
 import * as path from 'node:path'
 import fsExtra from 'fs-extra'
 
 export class FailToEncryptFileError extends Error {
-    public constructor(public readonly srcFilePath: string, public readonly opensslErrMessage?: string) {
+    public constructor(
+        public readonly srcFilePath: string,
+        public readonly opensslErrMessage?: string
+    ) {
         super(`Fail to encrypt source file: ${srcFilePath}`)
     }
 }
 
 export class FailToDecryptFileError extends Error {
-    public constructor(public readonly destFilePath: string, public readonly opensslErrMessage?: string) {
+    public constructor(
+        public readonly destFilePath: string,
+        public readonly opensslErrMessage?: string
+    ) {
         super(`Fail to decrypt destination file: ${destFilePath}`)
     }
 }
@@ -43,12 +49,22 @@ export async function encryptFile(
     await fsExtra.ensureDir(path.dirname(destFilePath))
 
     try {
-        await execa(`${command}`, {shell: true})
+        await execa(`${command}`, { shell: true })
     } catch (err) {
         if (typeof err == 'object' && err && Object.hasOwn(err, 'stderr')) {
-            throw new FailToEncryptFileError(srcFilePath, (err as { stderr: string }).stderr)
+            throw new FailToEncryptFileError(
+                srcFilePath,
+                (
+                    err as {
+                        stderr: string
+                    }
+                ).stderr
+            )
         } else {
-            throw new FailToDecryptFileError(srcFilePath, "Unknown error when encrypting the file.")
+            throw new FailToDecryptFileError(
+                srcFilePath,
+                'Unknown error when encrypting the file.'
+            )
         }
     }
 }
@@ -83,12 +99,22 @@ export async function decryptFile(
     await fsExtra.ensureDir(path.dirname(srcFilePath))
 
     try {
-        await execa(`${command}`, {shell: true})
+        await execa(`${command}`, { shell: true })
     } catch (err) {
         if (typeof err == 'object' && err && Object.hasOwn(err, 'stderr')) {
-            throw new FailToDecryptFileError(srcFilePath, (err as { stderr: string })['stderr'])
+            throw new FailToDecryptFileError(
+                srcFilePath,
+                (
+                    err as {
+                        stderr: string
+                    }
+                )['stderr']
+            )
         } else {
-            throw new FailToDecryptFileError(srcFilePath, "Unknown error when decrypting the file.")
+            throw new FailToDecryptFileError(
+                srcFilePath,
+                'Unknown error when decrypting the file.'
+            )
         }
     }
 }
@@ -100,7 +126,7 @@ export async function encryptFiles(
     iteration_count: number
 ): Promise<void> {
     for (const srcFilePath of srcFilePaths) {
-        const destFilePath: string = path.join(destDir, srcFilePath)
+        const destFilePath: string = path.join(destDir, srcFilePath + '.enc')
         await encryptFile(srcFilePath, destFilePath, secret, iteration_count)
         console.log(`[ENCRYPTED] ${srcFilePath} -> ${destFilePath}`)
     }
@@ -113,7 +139,7 @@ export async function decryptFiles(
     iteration_count: number
 ): Promise<void> {
     for (const srcFilePath of srcFilePaths) {
-        const destFilePath: string = path.join(destDir, srcFilePath)
+        const destFilePath: string = path.join(destDir, srcFilePath + '.enc')
         await decryptFile(srcFilePath, destFilePath, secret, iteration_count)
         console.log(`[DECRYPTED] ${destFilePath} -> ${srcFilePath}`)
     }
