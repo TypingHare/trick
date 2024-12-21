@@ -2,12 +2,19 @@
   "iteration_count": 114514,
   "targets": [
     {
-      "secret_name": "ROBLOX_PROJECT_TRICK_SECRET",
+      "secret_name": "TRICK_SECRET_NAME",
       "files": [
         "test/resources/really.json",
         "test/resources/task.yml"
       ]
+    },
+    {
+      "secret_name": "SUPERVISOR_SERVER_TRICK_SECRET_NAME",
+      "files": [
+        "test/main/resources/database.properties",
+        "test/main/resources/password.properties"
+      ]
     }
   ],
-  "default_secret_name": "ROBLOX_PROJECT_TRICK_SECRET"
+  "default_secret_name": "SUPERVISOR_SERVER_TRICK_SECRET_NAME"
 }

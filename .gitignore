@@ -58,3 +58,7 @@ node_modules
 
 # JetBrains
 /.idea
+
+.trick
+trick.profile.sh
+test/main/resources

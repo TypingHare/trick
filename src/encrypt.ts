@@ -43,7 +43,7 @@ export async function encryptFile(
         '-out',
         destFilePath,
         '-pass',
-        `pass:${secret}`,
+        `'pass:${secret}'`,
     ].join(' ')
 
     await fsExtra.ensureDir(path.dirname(destFilePath))
@@ -93,7 +93,7 @@ export async function decryptFile(
         '-out',
         srcFilePath,
         '-pass',
-        `pass:${secret}`,
+        `'pass:${secret}'`,
     ].join(' ')
 
     await fsExtra.ensureDir(path.dirname(srcFilePath))

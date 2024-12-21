@@ -20,7 +20,7 @@ import chalk from 'chalk'
 
 const program = new Command()
 
-program.version('Trick v1.0.3 \nby James Chen (jameschan312.cn@gmail.com)')
+program.version('Trick v1.0.6')
 program.description('Save credential files to remote safely.')
 
 program
