@@ -20,34 +20,94 @@ import chalk from 'chalk'
 
 const program = new Command()
 
-program.version('Trick v1.0.6')
+program.version('1.0.7')
 program.description('Save credential files to remote safely.')
 
 program
     .command('add')
-    .description('Adds a target.')
+    .description('Add a target or add files to an existing target.')
     .argument('<secret-name>', 'The name of secret in the environment')
     .argument('[files...]', 'Files this target will encrypt')
     .action(async (secretName: string, files: string[]): Promise<void> => {
         await updateConfig((config) => {
             try {
-                getTargetFromConfig(config, secretName)
+                const target = getTargetFromConfig(config, secretName)
+                target.files.push(...files)
+
+                return true
             } catch (err) {
                 config.default_secret_name = secretName
-                config.targets.push({
-                    secret_name: secretName,
-                    files,
-                })
+                config.targets.push({ secret_name: secretName, files })
+
                 return true
             }
-
-            console.error(
-                `Target with the secret name already exists: ${secretName}`
-            )
-            console.error('Abort adding target')
-            process.exit(1)
         })
     })
+
+program
+    .command('remove')
+    .description('Remove files from a specific target.')
+    .argument('<secret-name>', 'The name of secret in the environment.')
+    .argument('[files...]', 'Files to remove.')
+    .option('-t, --target', 'Remove the target instead.')
+    .action(
+        async (
+            secretName: string,
+            files: string[],
+            options: {
+                target: boolean
+            }
+        ): Promise<void> => {
+            if (options.target) {
+                await updateConfig((config) => {
+                    const index: number = config.targets.findIndex(
+                        (target) => target.secret_name === secretName
+                    )
+
+                    if (index == -1) {
+                        console.log(
+                            chalk.yellow(
+                                `[WARNING] Target not found: ${secretName}`
+                            )
+                        )
+
+                        return false
+                    }
+
+                    config.targets.splice(index, 1)
+                    console.log(`[SUCCESS] Removed target: ${secretName}`)
+
+                    return true
+                })
+                return
+            }
+
+            await updateConfig((config) => {
+                try {
+                    const target = getTargetFromConfig(config, secretName)
+                    const target_files = target.files
+                    for (const file of files) {
+                        const index = target_files.indexOf(file)
+                        if (index != -1) {
+                            target_files.splice(index, 1)
+                            console.log(`[SUCCESS] Removed file: ${file}`)
+                            continue
+                        }
+
+                        console.log(
+                            chalk.yellow(
+                                `[WARNING] File does not exist in the target: ${file}`
+                            )
+                        )
+                    }
+                } catch (err: unknown) {
+                    config.default_secret_name = secretName
+                }
+
+                return true
+            })
+        }
+    )
 
 function checkSecretName(
     secretName?: string,

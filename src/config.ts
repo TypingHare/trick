@@ -18,15 +18,16 @@ const defaultConfig: Config = {
     targets: [],
 }
 
-export class WriteConfigError extends Error {
-}
+export class WriteConfigError extends Error {}
 
-export class ReadConfigError extends Error {
-}
+export class ReadConfigError extends Error {}
 
 export async function writeConfig(config: Config): Promise<void> {
     try {
-        await fsExtra.writeJson(CONFIG_FILE_NAME, config)
+        await fsExtra.writeFile(
+            CONFIG_FILE_NAME,
+            JSON.stringify(config, null, 2)
+        )
     } catch (err) {
         throw new WriteConfigError()
     }

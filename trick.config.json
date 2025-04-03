@@ -9,12 +9,12 @@
       ]
     },
     {
-      "secret_name": "SUPERVISOR_SERVER_TRICK_SECRET_NAME",
+      "secret_name": "ANOTHER_TRICK_SECRET_NAME",
       "files": [
         "test/main/resources/database.properties",
         "test/main/resources/password.properties"
       ]
     }
   ],
-  "default_secret_name": "SUPERVISOR_SERVER_TRICK_SECRET_NAME"
+  "default_secret_name": "ANOTHER_TRICK_SECRET_NAME"
 }
