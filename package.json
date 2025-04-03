@@ -9,8 +9,7 @@
     "trick": "bin/trick"
   },
   "scripts": {
-    "build": "node_modules/typescript/bin/tsc",
-    "publish": "rm -rf dist && tsc && pnpm publish --access public"
+    "build": "node_modules/typescript/bin/tsc"
   },
   "author": {
     "name": "James Chen",
