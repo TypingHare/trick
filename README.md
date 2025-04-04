@@ -15,7 +15,7 @@ yarn add -g @typinghare/trick
 
 ## Philosophy
 
-We often add sensitive files, such as `.env` and `api_key.conf`, to `.gitignore`, preventing them from being committed or even pushed to remote depots for safety reasons. Then, we have to manually copy the file to the server. It could be effortless if we have only one file, but imagine we have more in a bigger project. Even worse, some careless people (me) even lost their sensitive files after they changed their computers!
+We often add sensitive files, such as `.env` and `api_key.conf`, to `.gitignore`, preventing them from being committed or even pushed to remote depots for safety reasons. Then, we have to manually copy the file to the server. It would be effortless if we only had one file, but imagine if we had more than one in a bigger project. Even worse, some careless people (me) have even lost their sensitive files after changing computers!
 
 **Trick** helps you to encrypt sensitive files with a secret so that you can upload the file to Git platforms. Later on the server, just use the same secret to decrypt the files with ease.
 
