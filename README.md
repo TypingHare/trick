@@ -15,34 +15,37 @@ yarn add -g @typinghare/trick
 
 ## Philosophy
 
-We often add sensitive files, such as `.env` and `api_key.conf`, to `.gitignore`, preventing them from being committed or even pushed to remote depots for safety reasons. Then, we have to manually copy the file to the server. It would be effortless if we only had one file, but imagine if we had more than one in a bigger project. Even worse, some careless people (me) have even lost their sensitive files after changing computers!
+We often add sensitive and credential files, such as `.env` and `api_key.conf`, to `.gitignore`, preventing them from being committed or even pushed to remote depots for safety reasons. Then, we have to manually copy the file to the server. It would be effortless if we only had one file, but imagine we have a lot in a bigger project. Even worse, some careless people (me) have even lost these sensitive files after changing computers!
 
-**Trick** helps you to encrypt sensitive files with a secret so that you can upload the file to Git platforms. Later on the server, just use the same secret to decrypt the files with ease.
+**Trick** helps you to encrypt sensitive files with a passphrase so that you can upload the credential file to Git platforms. Later on the server, just use the same passphrase to decrypt the files with ease.
 
 ## Quick Example
 
-Set up the **secret name** and the files needed to be encrypted:
+Set up the **target** with the files needed to be encrypted:
 
 ```bash
-# This will create a trick.config.json at the first time
-# trick add <secret-name> [files...]
-$ trick add AN_EXAMPLE_SECRET .env api_key.conf
+# This will create a trick.config.json in the current working directory
+# trick add <target> [files...]
+$ trick add MyTargetName .env api_key.conf
 
-# Display the list of secret names and the files bound
+# Display the list of target names and the files bound
 $ trick list
 ```
 
-Set up the `AN_EXAMPLE_SECRET` using `export` or put it in the login file:
+Create a `passphrase.json` file under `~/.config` with the following content:
 
-```bash
-$ export AN_EXAMPLE_SECRET="fQyX5O59MJuFD4l/tf2FYApqZY12N+UatEC6FC6mN7k="
-# Alternatively, put the above command to login files like `.bashrc` and `.zshrc`
+```json
+{
+    "MyTargetName": "Reg5eGPXWdmeW0i08uaygBlfbXP+tJlnu7z551Qt568="
+}
 ```
+
+Here, the key is the target name, and the value is the `passphrase` that is used to encrypt/decrypt the files associated with this target name.
 
 Encrypt the files:
 
 ```bash
-$ trick encrypt AN_EXAMPLE_SECRET
+$ trick encrypt MyTargetName
 ```
 
 You will see the following output:
@@ -52,11 +55,10 @@ You will see the following output:
 [ENCRYPTED] api_key.conf -> .trick/encrypted/api_key.conf.enc
 ```
 
-Encrypted files are all saved to `.trick`. On the server side, you can encrypt the files effortlessly:
+Encrypted files are all saved to `.trick`. On the server, set the the `passphrase.json` in the same way, and execute:
 
 ```bash
-$ export AN_EXAMPLE_SECRET="fQyX5O59MJuFD4l/tf2FYApqZY12N+UatEC6FC6mN7k="
-$ trick decrypt AN_EXAMPLE_SECRET
+$ trick decrypt MyTargetName
 ```
 
 And you will see that the files are restored:
@@ -67,20 +69,19 @@ And you will see that the files are restored:
 ```
 
 > [!IMPORTANT]
->
-> You need to keep the secret to yourself! Make a copy on Cloud or write it down!
+> The `passphrase.json` collects all the passphrases you have. Please back it up in multiple devices every time you edit it!
 
 ## More Features
 
-### Default Secret Name
+### Default Target Name
 
-You can set the default secret name so that you don't need to input it every time:
+You can set the default target name so that you don't need to input it every time:
 
 ```bash
-# Set the default secret name
-$ trick set-default AN_EXAMPLE_SECRET
+# Set the default target name
+$ trick set-default MyTargetName
 
-# Display the default secret name
+# Display the default target name
 $ trick get-default
 ```
 
@@ -90,4 +91,3 @@ Now you can encrypt and decrypt more easily:
 $ trick encrypt
 $ trick decrypt
 ```
-
