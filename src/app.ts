@@ -7,13 +7,13 @@ import { getPassphrase } from './passphrase.js'
 import { resolve_error } from './error.js'
 
 const program = new Command()
-program.version('2.0.0')
+program.version('2.0.1')
 program.description('Save credential files to remote safely and easily.')
 
 program
     .command('add')
     .description('Add files to a target.')
-    .argument('<name>', 'The name of the target')
+    .argument('<target>', 'The name of the target')
     .argument('[files...]', 'Files that are encrypted')
     .action(async (targetName: string, files: string[]): Promise<void> => {
         await updateConfig((config) => {
@@ -32,7 +32,7 @@ program
 program
     .command('remove')
     .description('Remove files from a target.')
-    .argument('<name>', 'The name of the target')
+    .argument('<target>', 'The name of the target')
     .argument('[files...]', 'Files to remove')
     .option('-t, --target', 'Remove the target instead.')
     .action(

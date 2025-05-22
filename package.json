@@ -1,7 +1,7 @@
 {
     "name": "@typinghare/trick",
     "description": "Save credential files to remote safely and easily.",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "type": "module",
