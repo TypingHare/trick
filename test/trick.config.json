@@ -1,0 +1,18 @@
+{
+    "iteration_count": 114514,
+    "targets": [
+        {
+            "secret_name": "TRICK_SECRET_NAME",
+            "files": ["test/resources/really.json", "test/resources/task.yml"]
+        },
+        {
+            "secret_name": "ANOTHER_TRICK_SECRET_NAME",
+            "files": [
+                "test/main/resources/database.properties",
+                "test/main/resources/password.properties"
+            ]
+        }
+    ],
+    "default_secret_name": "ANOTHER_TRICK_SECRET_NAME"
+}
+
