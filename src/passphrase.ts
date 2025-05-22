@@ -4,6 +4,7 @@ import {
     PassphraseFileNotFoundError,
     PassphraseNotFoundError,
 } from './error.js'
+import os from 'node:os'
 
 /**
  * Retrieves the passphrase from the passphrase file.
@@ -17,7 +18,10 @@ import {
  * @return The passphrase associated with the target name.
  */
 export function getPassphrase(config: Config, targetName: string): string {
-    const passphraseFilePath = config.passphrase_file_path
+    const passphraseFilePath = config.passphrase_file_path.replaceAll(
+        /~/g,
+        os.homedir()
+    )
     if (!fsExtra.existsSync(passphraseFilePath)) {
         throw new PassphraseFileNotFoundError(passphraseFilePath)
     }

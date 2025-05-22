@@ -1,9 +1,9 @@
 import { Command } from 'commander'
 import { Config, getTargetFromConfig, Target, updateConfig } from './config.js'
 import { decryptFiles, encryptFiles } from './encrypt.js'
-import fsExtra, { remove } from 'fs-extra'
+import fsExtra from 'fs-extra'
 import chalk from 'chalk'
-import { getPassphrase } from './secret.js'
+import { getPassphrase } from './passphrase.js'
 import { resolve_error } from './error.js'
 
 const program = new Command()
@@ -13,8 +13,8 @@ program.description('Save credential files to remote safely and easily.')
 program
     .command('add')
     .description('Add files to a target.')
-    .argument('<name>', 'The name of the target.')
-    .argument('[files...]', 'Files that are encrypted.')
+    .argument('<name>', 'The name of the target')
+    .argument('[files...]', 'Files that are encrypted')
     .action(async (targetName: string, files: string[]): Promise<void> => {
         await updateConfig((config) => {
             try {
@@ -32,8 +32,8 @@ program
 program
     .command('remove')
     .description('Remove files from a target.')
-    .argument('<name>', 'The name of the target.')
-    .argument('[files...]', 'Files to remove.')
+    .argument('<name>', 'The name of the target')
+    .argument('[files...]', 'Files to remove')
     .option('-t, --target', 'Remove the target instead.')
     .action(
         async (
@@ -149,17 +149,17 @@ program
 program
     .command('set-default')
     .description('Set the default target name.')
-    .argument('<target>', 'The name of the target to set.')
-    .action(async (secretName: string): Promise<void> => {
+    .argument('<target>', 'The name of the target to set')
+    .action(async (targetName: string): Promise<void> => {
         await updateConfig((config) => {
-            config.default_target_name = secretName
+            config.default_target_name = targetName
             return true
         })
     })
 
 program
     .command('get-default')
-    .description('Get the default secret name.')
+    .description('Get the default target name.')
     .action(async (): Promise<void> => {
         await updateConfig((config) => {
             console.log(config.default_target_name)

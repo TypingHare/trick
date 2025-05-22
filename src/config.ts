@@ -52,9 +52,9 @@ const DEFAULT_CONFIG: Config = {
     targets: {},
     default_target_name: null,
     root_directory: '.trick',
-    passphrase_file_path: '~/.config/trick_passphrase.config',
+    passphrase_file_path: '~/.config/trick_passphrase.json',
     encryption: {
-        iteration_count: 0,
+        iteration_count: 100_000,
     },
 }
 

@@ -1,4 +1,3 @@
-my_task:
-  name: My Task
-  time_unit: milliseconds
-  time: 350
+response:
+  message: Ok
+  userId: 123456

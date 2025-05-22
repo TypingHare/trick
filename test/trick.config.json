@@ -1,18 +1,13 @@
 {
-    "iteration_count": 114514,
-    "targets": [
-        {
-            "secret_name": "TRICK_SECRET_NAME",
-            "files": ["test/resources/really.json", "test/resources/task.yml"]
-        },
-        {
-            "secret_name": "ANOTHER_TRICK_SECRET_NAME",
-            "files": [
-                "test/main/resources/database.properties",
-                "test/main/resources/password.properties"
-            ]
+    "targets": {
+        "MyTestTarget": {
+            "files": ["resources/really.json", "resources/task.yml"]
         }
-    ],
-    "default_secret_name": "ANOTHER_TRICK_SECRET_NAME"
+    },
+    "default_target_name": "MyTestTarget",
+    "root_directory": ".trick",
+    "passphrase_file_path": "~/.config/trick_passphrase.json",
+    "encryption": {
+        "iteration_count": 100000
+    }
 }
-

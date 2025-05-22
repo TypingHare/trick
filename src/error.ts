@@ -13,8 +13,8 @@ export class ReadConfigError extends Error {
 }
 
 export class TargetNotFoundError extends Error {
-    public constructor(public readonly secretName: string) {
-        super(`Target not found: ${secretName}`)
+    public constructor(public readonly targetName: string) {
+        super(`Target not found: ${targetName}`)
     }
 }
 
