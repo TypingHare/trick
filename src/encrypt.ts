@@ -2,6 +2,7 @@ import { execa } from 'execa'
 import * as path from 'node:path'
 import fsExtra from 'fs-extra'
 import { FailToDecryptFileError, FailToEncryptFileError } from './error.js'
+import { success } from './console.js'
 
 /**
  * Encrypts a file using OpenSSL with AES-256-CBC and PBKDF2 key derivation.
@@ -136,7 +137,7 @@ export async function encryptFiles(
   for (const srcFilePath of srcFilePaths) {
     const destFilePath: string = path.join(destDir, srcFilePath + '.enc')
     await encryptFile(srcFilePath, destFilePath, passphrase, iterationCount)
-    console.log(`[ENCRYPTED] ${srcFilePath} -> ${destFilePath}`)
+    console.log(success(`Encrypted: ${srcFilePath} -> ${destFilePath}`))
   }
 }
 
@@ -162,6 +163,6 @@ export async function decryptFiles(
   for (const srcFilePath of srcFilePaths) {
     const destFilePath: string = path.join(destDir, srcFilePath + '.enc')
     await decryptFile(srcFilePath, destFilePath, passphrase, iterationCount)
-    console.log(`[DECRYPTED] ${destFilePath} -> ${srcFilePath}`)
+    console.log(success(`Decrypted: ${destFilePath} -> ${srcFilePath}`))
   }
 }

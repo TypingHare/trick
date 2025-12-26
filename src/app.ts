@@ -53,10 +53,18 @@ program
   .action(function (targetName: string, files: string[]): void {
     updateConfig((config) => {
       const target = config.targets[targetName]
-      if (target) {
-        target.files.push(...files)
-      } else {
+      if (!target) {
         config.targets[targetName] = { files }
+        console.log(success(`Added files to target: ${targetName}`))
+      } else {
+        for (const file of files) {
+          if (target.files.includes(file)) {
+            console.log(warning(`File already exists in the target: ${file}`))
+          } else {
+            target.files.push(file)
+            console.log(success(`Added file to target: ${file}`))
+          }
+        }
       }
 
       return true
@@ -122,6 +130,11 @@ program
         targetNames.push(...config.defaultTargetNames)
       }
 
+      if (targetNames.length === 0) {
+        console.log(warning('No target names specified and no default targets set.'))
+        return
+      }
+
       const rootDirectory = getRootDirectory()
       const trickRootDirectory = path.resolve(rootDirectory, config.trickRootDirectory)
       for (const targetName of targetNames) {
@@ -145,6 +158,11 @@ program
         targetNames.push(...config.defaultTargetNames)
       }
 
+      if (targetNames.length === 0) {
+        console.log(warning('No target names specified and no default targets set.'))
+        return
+      }
+
       const rootDirectory = getRootDirectory()
       const trickRootDirectory = path.resolve(rootDirectory, config.trickRootDirectory)
       for (const targetName of targetNames) {
@@ -162,20 +180,32 @@ program
   .command('add-default')
   .description('Add default target names.')
   .argument('[targetNames...]', 'The names of targets to add')
-  .action(function (targetName: string): void {
+  .action(function (targetNames: string[]): void {
     updateConfig((config) => {
-      if (config.defaultTargetNames.includes(targetName)) {
-        return false
-      } else {
+      let addedAny = false
+      for (const targetName of targetNames) {
+        if (!config.targets[targetName]) {
+          console.log(warning(`Target not found: ${targetName}`))
+          continue
+        }
+
+        if (config.defaultTargetNames.includes(targetName)) {
+          console.log(warning(`Target name already in default list: ${targetName}`))
+          continue
+        }
+
         config.defaultTargetNames.push(targetName)
-        return true
+        console.log(success(`Added default target name: ${targetName}`))
+        addedAny = true
       }
+
+      return addedAny
     })
   })
 
 program
-  .command('get-defaults')
-  .description('Get the default target name.')
+  .command('list-defaults')
+  .description('Display  the default target name.')
   .action(function (): void {
     updateConfig((config) => {
       for (const targetName of config.defaultTargetNames) {
@@ -216,6 +246,8 @@ program
         fsExtra.chmodSync(passphraseFile, 0o600)
         console.log(success(`Created passphrase file: ${passphraseFile}`))
         console.log(success(`You have to edit the file to set the passphrase.`))
+      } else {
+        console.log(warning(`Passphrase file already exists: ${passphraseFile}`))
       }
     })
   })
