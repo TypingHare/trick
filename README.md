@@ -1,8 +1,21 @@
 # [Trick](https://github.com/typinghare/trick)
 
-# Install
+**Trick** is a CLI tool that helps you **safely encrypt sensitive files** (such as `.env`, API keys, or credentials) so they can be stored in Git repositories and easily restored on other machines or servers.
 
-```shell
+It uses **OpenSSL (AES-256-CBC + PBKDF2)** under the hood and keeps encryption keys **outside your repository**.
+
+## Features
+
+* 🔐 Encrypt and decrypt sensitive files with strong encryption
+* 🎯 Group files into **targets**
+* 📦 Store encrypted files under a dedicated `.trick/` directory
+* 🗝️ Keep passphrases outside your repo (per-target, permission-protected)
+* 🔁 Works across machines and servers
+* ⚙️ Fully configurable, project-aware
+
+## Installation
+
+```bash
 # npm
 npm install -g @typinghare/trick
 
@@ -13,81 +26,202 @@ pnpm add -g @typinghare/trick
 yarn add -g @typinghare/trick
 ```
 
+> **Requirements**
+>
+> * Node.js ≥ 18
+> * `openssl` available in your system PATH
+
 ## Philosophy
 
-We often add sensitive and credential files, such as `.env` and `api_key.conf`, to `.gitignore`, preventing them from being committed or even pushed to remote depots for safety reasons. Then, we have to manually copy the file to the server. It would be effortless if we only had one file, but imagine we have a lot in a bigger project. Even worse, some careless people (me) have even lost these sensitive files after changing computers!
+Sensitive files are usually added to `.gitignore` to avoid accidental leaks.
+But that means:
 
-**Trick** helps you to encrypt sensitive files with a passphrase so that you can upload the credential file to Git platforms. Later on the server, just use the same passphrase to decrypt the files with ease.
+* You must manually copy them to every new machine
+* They’re easy to lose
+* They don’t version well
 
-## Quick Example
+**Trick encrypts those files**, allowing you to commit the encrypted versions safely, while keeping passphrases out of Git entirely.
 
-Set up the **target** with the files needed to be encrypted:
+
+
+## Getting Started
+
+### 1. Initialize Trick
+
+Run this inside your project:
 
 ```bash
-# This will create a trick.config.json in the current working directory
-# trick add <target> [files...]
-$ trick add MyTargetName .env api_key.conf
-
-# Display the list of target names and the files bound
-$ trick list
+trick init
 ```
 
-Create a `passphrase.json` file under `~/.config` with the following content:
+This creates a `trick.config.json` in your project root.
+
+
+
+### 2. Add Files to a Target
+
+A **target** is a named group of files to encrypt together.
+
+```bash
+trick add MyTarget .env api_key.conf
+```
+
+List all targets:
+
+```bash
+trick list
+```
+
+
+
+### 3. Set a Passphrase for the Target
+
+Each target has its **own passphrase file** stored locally (not in Git).
+
+```bash
+trick set-passphrase MyTarget
+```
+
+This creates a file at:
+
+```
+~/.config/trick/passphrases/MyTarget
+```
+
+* File permissions are set to `600`
+* You must manually edit this file and paste your passphrase
+* The file content is read as plain text (trimmed)
+
+> ⚠️ **Important**
+> Back up your passphrase files. Losing them means losing access to your encrypted data.
+
+
+
+### 4. Encrypt Files
+
+```bash
+trick encrypt MyTarget
+```
+
+Encrypted files are written to:
+
+```
+.trick/<original-path>.enc
+```
+
+Example output:
+
+```
+🟩 Encrypted: .env -> .trick/.env.enc
+🟩 Encrypted: api_key.conf -> .trick/api_key.conf.enc
+```
+
+You can now commit the `.trick/` directory safely.
+
+
+
+### 5. Decrypt Files (on another machine or server)
+
+1. Copy or recreate the passphrase file:
+
+   ```
+   ~/.config/trick/passphrases/MyTarget
+   ```
+2. Run:
+
+   ```bash
+   trick decrypt MyTarget
+   ```
+
+Files are restored to their original locations.
+
+
+
+## Default Targets
+
+You can mark targets as **default**, so you don’t need to specify them every time.
+
+```bash
+trick add-default MyTarget
+```
+
+List default targets:
+
+```bash
+trick list-defaults
+```
+
+Now you can simply run:
+
+```bash
+trick encrypt
+trick decrypt
+```
+
+
+
+## Configuration
+
+### `trick.config.json`
+
+Example:
 
 ```json
 {
-    "MyTargetName": "Reg5eGPXWdmeW0i08uaygBlfbXP+tJlnu7z551Qt568="
+  "targets": {
+    "MyTarget": {
+      "files": [".env", "api_key.conf"]
+    }
+  },
+  "trickRootDirectory": ".trick",
+  "passphraseDirectory": "~/.config/trick/passphrases",
+  "defaultTargetNames": ["MyTarget"],
+  "encryption": {
+    "iterationCount": 100000
+  }
 }
 ```
 
-Here, the key is the target name, and the value is the `passphrase` that is used to encrypt/decrypt the files associated with this target name.
+### Key Fields
 
-Encrypt the files:
+| Field                       | Description                           |
+| ------------------------ | ------------------------------------- |
+| `targets`                   | Mapping of target names to file lists |
+| `trickRootDirectory`        | Where encrypted files are stored      |
+| `passphraseDirectory`       | Where passphrase files live           |
+| `defaultTargetNames`        | Targets used when none specified      |
+| `encryption.iterationCount` | PBKDF2 iteration count                |
 
-```bash
-$ trick encrypt MyTargetName
-```
 
-You will see the following output:
 
-```text
-[ENCRYPTED] .env -> .trick/encrypted/.env.enc
-[ENCRYPTED] api_key.conf -> .trick/encrypted/api_key.conf.enc
-```
+## Commands Overview
 
-Encrypted files are all saved to `.trick`. On the server, set the the `passphrase.json` in the same way, and execute:
+| Command                            | Description                |
+| ---------------------------------- | -------------------------- |
+| `trick init`                       | Initialize configuration   |
+| `trick config`                     | Print current config       |
+| `trick add <target> [files...]`    | Add files to a target      |
+| `trick remove <target> [files...]` | Remove files from a target |
+| `trick remove <target> --target`   | Remove a target            |
+| `trick list`                       | List targets and files     |
+| `trick set-passphrase <target>`    | Create passphrase file     |
+| `trick encrypt [targets...]`       | Encrypt files              |
+| `trick decrypt [targets...]`       | Decrypt files              |
+| `trick add-default [targets...]`   | Add default targets        |
+| `trick list-defaults`              | Show default targets       |
 
-```bash
-$ trick decrypt MyTargetName
-```
+## Security Notes
 
-And you will see that the files are restored:
+* Encryption uses:
 
-```text
-[DECRYPTED] .trick/encrypted/.env.enc -> .env
-[DECRYPTED] .trick/encrypted/api_key.conf.enc -> api_key.conf
-```
+  * **AES-256-CBC**
+  * **PBKDF2** with configurable iteration count
+* Passphrases:
 
-> [!IMPORTANT]
-> The `passphrase.json` collects all the passphrases you have. Please back it up in multiple devices every time you edit it!
+  * Never stored in Git
+  * Stored as local files with strict permissions
+* Losing passphrases = losing access to encrypted files
 
-## More Features
+## License
 
-### Default Target Name
-
-You can set the default target name so that you don't need to input it every time:
-
-```bash
-# Set the default target name
-$ trick set-default MyTargetName
-
-# Display the default target name
-$ trick get-default
-```
-
-Now you can encrypt and decrypt more easily:
-
-```bash
-$ trick encrypt
-$ trick decrypt
-```
+MIT
