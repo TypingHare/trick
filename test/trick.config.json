@@ -1,13 +1,14 @@
 {
-    "targets": {
-        "MyTestTarget": {
-            "files": ["resources/really.json", "resources/task.yml"]
-        }
-    },
-    "default_target_name": "MyTestTarget",
-    "root_directory": ".trick",
-    "passphrase_file_path": "~/.config/trick_passphrase.json",
-    "encryption": {
-        "iteration_count": 100000
+  "targets": {
+    "TRICK_TEST_ONE": {
+      "files": ["resources/user_info.json", "resources/task_info.yml"]
     }
+  },
+  "trickRootDirectory": ".trick",
+  "passphraseDirectory": "~/.config/trick/passphrases",
+  "defaultTargetNames": [],
+  "encryption": {
+    "iterationCount": 100000
+  }
 }
+

@@ -1,9 +1,11 @@
 import fsExtra from 'fs-extra'
 import {
-    ReadConfigError,
-    TargetNotFoundError,
-    WriteConfigError,
+  ReadConfigError,
+  TargetNotFoundError,
+  WriteConfigError,
+  RootDirectoryNotFoundError,
 } from './error.js'
+import { join, resolve } from 'path'
 
 /**
  * The name of the configuration file to look for in the root directory.
@@ -11,20 +13,26 @@ import {
 export const CONFIG_FILE_NAME: string = 'trick.config.json'
 
 /**
- * Config type.
+ * A list of root markers.
+ */
+export const ROOT_MARKERS: string[] = ['.git', CONFIG_FILE_NAME]
+
+/**
+ * Represents Trick configuration type.
  *
  * @property targets Mapping from target names to target objects.
- * @property default_target_name The name of the default target.
- * @property root_directory The root directory.
- * @property passphrase_file_path The path to the passphrase file.
+ * @property trickRootDirectory The name of the Trick root directory under the project root.
+ * @property passphraseDirectory The path to the passphrase directory.
+ * @property defaultTargetNames A list of default target names. If no target name is specified
+ *   when running Trick commands, these target names will be used.
  * @property encryption Encryption configuration.
  */
 export interface Config {
-    targets: { [name: string]: Target }
-    default_target_name: string | null
-    root_directory: string
-    passphrase_file_path: string
-    encryption: Encryption
+  targets: { [name: string]: Target }
+  trickRootDirectory: string
+  passphraseDirectory: string
+  defaultTargetNames: string[]
+  encryption: Encryption
 }
 
 /**
@@ -33,91 +41,129 @@ export interface Config {
  * @property files A list of files to encrypt/decrypt.
  */
 export interface Target {
-    files: string[]
+  files: string[]
 }
 
 /**
  * Encryption configuration.
  *
- * @property iteration_count The number of iteration.
+ * @property iterationCount The number of iteration.
  */
 export interface Encryption {
-    iteration_count: number
+  iterationCount: number
 }
 
 /**
  * Default configuration.
  */
 const DEFAULT_CONFIG: Config = {
-    targets: {},
-    default_target_name: null,
-    root_directory: '.trick',
-    passphrase_file_path: '~/.config/trick_passphrase.json',
-    encryption: {
-        iteration_count: 100_000,
-    },
+  targets: {},
+  trickRootDirectory: '.trick',
+  passphraseDirectory: '~/.config/trick/passphrases',
+  defaultTargetNames: [],
+  encryption: {
+    iterationCount: 100_000,
+  },
+}
+
+/**
+ * Recursively searches for the root directory of a project based on specified root markers.
+ *
+ * @param directory - The current directory to check. Defaults to the current working directory.
+ * @returns The path to the root directory.
+ * @throws {RootDirectoryNotFoundError} If the root directory cannot be found.
+ */
+export function getRootDirectory(directory: string | null = null): string {
+  if (!directory) {
+    return getRootDirectory(process.cwd())
+  }
+
+  if (directory === '/') {
+    throw new RootDirectoryNotFoundError()
+  }
+
+  for (const marker of ROOT_MARKERS) {
+    if (fsExtra.existsSync(join(directory, marker))) {
+      return directory
+    }
+  }
+
+  return getRootDirectory(resolve(join(directory, '..')))
+}
+
+/**
+ * Gets the full path to the configuration file based on the root directory.
+ *
+ * @return The full path to the configuration file.
+ * @throws {RootDirectoryNotFoundError} If the root directory cannot be found.
+ */
+export function getConfigFilePath(): string {
+  return resolve(getRootDirectory() + '/' + CONFIG_FILE_NAME)
 }
 
 /**
  * Writes a configuration object to the configuration file.
  *
  * @param config The configuration to write.
- * @throws {WriteConfigError} If error occurs when writing to the configuration
- *         file.
+ * @param createInRoot Whether to create the configuration file in the root directory if it
+ *   doesn't exist. Defaults to false.
+ * @throws {WriteConfigError} If error occurs when writing to the configuration file.
  */
-export async function writeConfig(config: Config): Promise<void> {
-    try {
-        await fsExtra.writeFile(
-            CONFIG_FILE_NAME,
-            JSON.stringify(config, null, 2)
-        )
-    } catch (err) {
-        throw new WriteConfigError(err)
+export function writeConfig(config: Config, createInRoot: boolean = true): void {
+  try {
+    if (createInRoot) {
+      const configFilePath = join(getRootDirectory(), CONFIG_FILE_NAME)
+      fsExtra.writeFileSync(configFilePath, JSON.stringify(config, null, 2))
+    } else {
+      // Always create in the current working directory
+      const configFilePath = join(process.cwd(), CONFIG_FILE_NAME)
+      fsExtra.writeFileSync(configFilePath, JSON.stringify(config, null, 2))
     }
+  } catch (err) {
+    throw new WriteConfigError(err)
+  }
 }
 
 /**
  * Retrieves the configuration object from the configuration file.
  *
- * @return The configuration object retrieved from the configuration object;
- *         null if the configuration file doesn't exist.
- * @throws {ReadConfigError} If error occurs when reading the configuration
- *         file.
+ * @return The configuration object retrieved from the configuration object; null if the
+ *   configuration file doesn't exist.
+ * @throws {ReadConfigError} If error occurs when reading the configuration file.
  */
-export async function readConfig(): Promise<Config | null> {
-    if (!fsExtra.existsSync(CONFIG_FILE_NAME)) {
-        return null
-    }
+export function readConfig(): Config | null {
+  const configFilePath = getConfigFilePath()
+  if (!fsExtra.existsSync(configFilePath)) {
+    return null
+  }
 
-    try {
-        return (await fsExtra.readJSON(CONFIG_FILE_NAME)) as Config
-    } catch (err) {
-        throw new ReadConfigError(err)
-    }
+  try {
+    return fsExtra.readJSONSync(configFilePath) as Config
+  } catch (err) {
+    throw new ReadConfigError(err)
+  }
 }
 
 /**
  * Updates the configuration object.
  *
- * This function first retrieves the configuration object fromthe configuration
- * file. If the configuration file doesn't exist, the default configuration will
- * be used instead.
+ * This function first retrieves the configuration object fromthe configuration file. If the
+ * configuration file doesn't exist, the default configuration will be used instead.
  *
- * Then it calls the callback function by passing on the configuration object.
- * If the callback function returns `true`, then the object will be written to
- * the configuration file.
+ * Then it calls the callback function by passing on the configuration object. If the callback
+ * function returns `true`, then the object will be written to the configuration file.
  *
- * @param callback The callback function taking the configuraition object
- *                 retrieved from the configuration file.
+ * @param callback The callback function taking the configuraition object retrieved from the
+ *   configuration file.
+ *
  * @see DEFAULT_CONFIG
  */
-export async function updateConfig(
-    callback: (Config: Config) => boolean | void
-): Promise<void> {
-    const config: Config = (await readConfig()) || DEFAULT_CONFIG
-    if (callback(config)) {
-        await writeConfig(config)
-    }
+export function updateConfig(
+  callback: (Config: Config) => boolean | void,
+  createInRoot: boolean = true
+): void {
+  const config: Config = readConfig() || DEFAULT_CONFIG
+  Boolean(callback(config)) && writeConfig(config, createInRoot)
 }
 
 /**
@@ -128,14 +174,11 @@ export async function updateConfig(
  * @return The target object associated with the given name.
  * @throws {TargetNotFoundError} If the target object is not found.
  */
-export function getTargetFromConfig(
-    config: Config,
-    targetName: string
-): Target {
-    const target = config.targets[targetName]
-    if (!target) {
-        throw new TargetNotFoundError(targetName)
-    }
+export function getTargetFromConfig(config: Config, targetName: string): Target {
+  const target = config.targets[targetName]
+  if (!target) {
+    throw new TargetNotFoundError(targetName)
+  }
 
-    return target
+  return target
 }

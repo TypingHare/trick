@@ -1,4 +1,7 @@
 export * from './app.js'
+export * from './color.js'
 export * from './config.js'
+export * from './console.js'
 export * from './encrypt.js'
+export * from './error.js'
 export * from './passphrase.js'
