@@ -1,7 +1,7 @@
 {
   "name": "@typinghare/trick",
   "description": "Save credential files to remote safely and easily.",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -17,6 +17,21 @@
   },
   "homepage": "https://github.com/typinghare/trick",
   "license": "MIT",
+  "keywords": [
+    "cli",
+    "credentials",
+    "secrets",
+    "secret-management",
+    "config",
+    "dotenv",
+    "security",
+    "encryption",
+    "remote-storage",
+    "backup",
+    "sync",
+    "devops",
+    "tool"
+  ],
   "dependencies": {
     "chalk": "^5.6.2",
     "commander": "^14.0.2",
