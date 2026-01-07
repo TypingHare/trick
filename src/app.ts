@@ -15,7 +15,7 @@ import { colorFilePath, colorTargetName } from './color.js'
 import { success, warning } from './console.js'
 
 const program = new Command()
-program.version('2.1.0')
+program.version('2.1.2')
 program.description('Save credential files to remote safely and easily.')
 
 program
@@ -136,14 +136,12 @@ program
       }
 
       const rootDirectory = getRootDirectory()
-      const trickRootDirectory = path.resolve(rootDirectory, config.trickRootDirectory)
       for (const targetName of targetNames) {
         const target: Target = getTargetFromConfig(config, targetName)
         const passphrase: string = getPassphrase(config, targetName)
         const srcFilePaths: string[] = target.files
 
-        fsExtra.ensureDir(trickRootDirectory)
-        encryptFiles(srcFilePaths, trickRootDirectory, passphrase, config.encryption.iterationCount)
+        encryptFiles(config, rootDirectory, srcFilePaths, passphrase)
       }
     })
   })
@@ -164,14 +162,12 @@ program
       }
 
       const rootDirectory = getRootDirectory()
-      const trickRootDirectory = path.resolve(rootDirectory, config.trickRootDirectory)
       for (const targetName of targetNames) {
         const target: Target = getTargetFromConfig(config, targetName)
         const passphrase: string = getPassphrase(config, targetName)
         const srcFilePaths: string[] = target.files
 
-        fsExtra.ensureDir(trickRootDirectory)
-        decryptFiles(srcFilePaths, trickRootDirectory, passphrase, config.encryption.iterationCount)
+        decryptFiles(config, rootDirectory, srcFilePaths, passphrase)
       }
     })
   })
@@ -205,7 +201,7 @@ program
 
 program
   .command('list-defaults')
-  .description('Display  the default target name.')
+  .description('Display the default target name.')
   .action(function (): void {
     updateConfig((config) => {
       for (const targetName of config.defaultTargetNames) {
@@ -237,17 +233,17 @@ program
       const passphraseDirectory = getPassphraseDirectory(config)
       if (!fsExtra.existsSync(passphraseDirectory)) {
         fsExtra.ensureDirSync(passphraseDirectory)
-        console.log(success(`Created passphrase directory: ${passphraseDirectory}`))
+        console.log(success(`Created passphrase directory: ${colorFilePath(passphraseDirectory)}`))
       }
 
       const passphraseFile = path.join(passphraseDirectory, targetName)
       if (!fsExtra.existsSync(passphraseFile)) {
         fsExtra.createFileSync(passphraseFile)
         fsExtra.chmodSync(passphraseFile, 0o600)
-        console.log(success(`Created passphrase file: ${passphraseFile}`))
+        console.log(success(`Created passphrase file: ${colorFilePath(passphraseFile)}`))
         console.log(success(`You have to edit the file to set the passphrase.`))
       } else {
-        console.log(warning(`Passphrase file already exists: ${passphraseFile}`))
+        console.log(warning(`Passphrase file already exists: ${colorFilePath(passphraseFile)}`))
       }
     })
   })

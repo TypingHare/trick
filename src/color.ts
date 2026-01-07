@@ -7,3 +7,11 @@ export function colorTargetName(targetName: string): string {
 export function colorFilePath(filePath: string): string {
   return chalk.yellow(filePath)
 }
+
+export function colorSourceFilePath(filePath: string): string {
+  return chalk.italic.green(filePath)
+}
+
+export function colorTargetFilePath(message: string): string {
+  return chalk.italic.magenta(message)
+}

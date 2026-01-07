@@ -4,10 +4,3 @@
 # NodeJS
 node_modules
 /dist
-
-# JetBrains
-/.idea
-
-# Trick test files
-.trick
-trick.profile.sh

@@ -3,6 +3,8 @@ import * as path from 'node:path'
 import fsExtra from 'fs-extra'
 import { FailToDecryptFileError, FailToEncryptFileError } from './error.js'
 import { success } from './console.js'
+import { colorSourceFilePath, colorTargetFilePath } from './color.js'
+import { Config } from './config.js'
 
 /**
  * Encrypts a file using OpenSSL with AES-256-CBC and PBKDF2 key derivation.
@@ -121,48 +123,65 @@ export async function decryptFile(
  * For each source file path provided, this function constructs the destination file path by
  * appending `.enc`, then calls `encryptFile` and logs the operation.
  *
+ * @param config The configuration object.
+ * @param rootDir The root directory where the trick configuration is located.
  * @param srcFilePaths An array of file paths to be encrypted.
- * @param destDir The directory where the encrypted files will be saved.
  * @param passphrase The passphrase used for encryption.
- * @param iterationCount The number of iterations to use for PBKDF2.
  * @returns Resolves when all files are successfully encrypted.
  * @throws {FailToEncryptFileError} If any file fails to encrypt.
  */
 export async function encryptFiles(
+  config: Config,
+  rootDir: string,
   srcFilePaths: string[],
-  destDir: string,
-  passphrase: string,
-  iterationCount: number
+  passphrase: string
 ): Promise<void> {
-  for (const srcFilePath of srcFilePaths) {
-    const destFilePath: string = path.join(destDir, srcFilePath + '.enc')
-    await encryptFile(srcFilePath, destFilePath, passphrase, iterationCount)
-    console.log(success(`Encrypted: ${srcFilePath} -> ${destFilePath}`))
-  }
-}
+  const iterationCount: number = config.encryption.iterationCount
+  const trickRootDirectory: string = config.trickRootDirectory
 
-/**
+  fsExtra.ensureDir(path.join(rootDir, trickRootDirectory))
+  for (const srcFilePath of srcFilePaths) {
+    const destFilePath: string = path.join(trickRootDirectory, srcFilePath + '.enc')
+    const absoluteDestFilePath: string = path.join(rootDir, destFilePath)
+    const absoluteSrcFilePath: string = path.resolve(rootDir, srcFilePath)
+    await encryptFile(absoluteSrcFilePath, absoluteDestFilePath, passphrase, iterationCount)
+    console.log(
+      success(
+        `Encrypted: ${colorSourceFilePath(srcFilePath)} -> ${colorTargetFilePath(destFilePath)}`
+      )
+    )
+  }
+} /**
  * Decrypts multiple files using OpenSSL with AES-256-CBC and PBKDF2 key derivation.
  *
  * For each source file path provided, this function assumes the corresponding encrypted file has
  * the `.enc` extension and calls `decryptFile`, logging the operation.
  *
+ * @param config The configuration object.
+ * @param rootDir The root directory where the trick configuration is located.
  * @param srcFilePaths An array of original file paths that were encrypted.
- * @param destDir The directory containing the encrypted files.
  * @param passphrase The passphrase used for decryption.
- * @param iterationCount The number of iterations used for PBKDF2.
  * @returns Resolves when all files are successfully decrypted.
  * @throws {FailToDecryptFileError} If any file fails to decrypt.
  */
 export async function decryptFiles(
+  config: Config,
+  rootDir: string,
   srcFilePaths: string[],
-  destDir: string,
-  passphrase: string,
-  iterationCount: number
+  passphrase: string
 ): Promise<void> {
+  const iterationCount: number = config.encryption.iterationCount
+  const trickRootDirectory: string = config.trickRootDirectory
+
   for (const srcFilePath of srcFilePaths) {
-    const destFilePath: string = path.join(destDir, srcFilePath + '.enc')
-    await decryptFile(srcFilePath, destFilePath, passphrase, iterationCount)
-    console.log(success(`Decrypted: ${destFilePath} -> ${srcFilePath}`))
+    const destFilePath: string = path.join(trickRootDirectory, srcFilePath + '.enc')
+    const absoluteDestFilePath: string = path.join(rootDir, destFilePath)
+    const absoluteSrcFilePath: string = path.resolve(rootDir, srcFilePath)
+    await decryptFile(absoluteSrcFilePath, absoluteDestFilePath, passphrase, iterationCount)
+    console.log(
+      success(
+        `Decrypted: ${colorTargetFilePath(destFilePath)} -> ${colorSourceFilePath(srcFilePath)}`
+      )
+    )
   }
 }
